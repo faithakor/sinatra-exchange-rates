@@ -7,13 +7,11 @@
 </head>
 <body>
   <h1>Convert <%= @from_currency %> to <%= @to_currency %></h1>
-  
   <% if @conversion_rate %>
     <p>1 <%= @from_currency %> equals <%= @conversion_rate %> <%= @to_currency %>.</p>
   <% else %>
-    <p>Conversion rate not available.</p>
+    <p>Conversion failed. Please try again later.</p>
   <% end %>
-  
-  <a href="/<%= @from_currency %>">Back</a>
+  <a href="/<%= @from_currency %>">Back to <%= @from_currency %></a>
 </body>
 </html>

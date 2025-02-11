@@ -7,17 +7,13 @@
 </head>
 <body>
   <h1>Convert <%= @currency %></h1>
-  
   <ul>
     <% @currencies.each do |currency| %>
-      <% if currency != @currency %>
-        <li>
-          <a href="/<%= @currency %>/<%= currency %>">Convert 1 <%= @currency %> to <%= currency %></a>
-        </li>
-      <% end %>
+      <li>
+        <a href="/<%= @currency %>/<%= currency %>">Convert 1 <%= @currency %> to <%= currency %>...</a>
+      </li>
     <% end %>
   </ul>
-  
-  <a href="/">Back</a>
+  <a href="/">Back to home</a>
 </body>
 </html>

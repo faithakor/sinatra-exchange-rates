@@ -9,9 +9,29 @@ require 'uri'
 get '/' do
   api_url = "https://api.exchangerate.host/list"
   uri = URI(api_url)
-  response = Net::HTTP.get(uri)  # Fetch the API data
   
-  @currencies = JSON.parse(response)["symbols"].keys
+  # Make the request to the API
+  response = Net::HTTP.get(uri)
+  
+  # Log the response for debugging purposes
+  puts "API Response: #{response}"
+
+  # Parse the JSON response
+  begin
+    parsed_response = JSON.parse(response)
+    
+    # Check if the 'symbols' key exists
+    if parsed_response && parsed_response['symbols']
+      @currencies = parsed_response['symbols'].keys
+    else
+      @currencies = []
+      puts "Error: 'symbols' key not found in API response"
+    end
+  rescue JSON::ParserError => e
+    @currencies = []
+    puts "Error parsing JSON: #{e.message}"
+  end
+  
   erb :homepage
 end
 
@@ -22,7 +42,19 @@ get '/:currency' do
   uri = URI(api_url)
   response = Net::HTTP.get(uri)
   
-  @currencies = JSON.parse(response)["symbols"].keys
+  begin
+    parsed_response = JSON.parse(response)
+    if parsed_response && parsed_response['symbols']
+      @currencies = parsed_response['symbols'].keys
+    else
+      @currencies = []
+      puts "Error: 'symbols' key not found in API response"
+    end
+  rescue JSON::ParserError => e
+    @currencies = []
+    puts "Error parsing JSON: #{e.message}"
+  end
+
   erb :currency
 end
 
@@ -34,8 +66,18 @@ get '/:from_currency/:to_currency' do
   uri = URI(api_url)
   response = Net::HTTP.get(uri)
   
-  data = JSON.parse(response)
-  @conversion_rate = data['info']['rate'] if data['success']
+  begin
+    data = JSON.parse(response)
+    if data['success']
+      @conversion_rate = data['info']['rate']
+    else
+      @conversion_rate = nil
+      puts "Error in conversion response: #{data['error']}"
+    end
+  rescue JSON::ParserError => e
+    @conversion_rate = nil
+    puts "Error parsing JSON: #{e.message}"
+  end
   
   erb :conversion
 end
