@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Currency Pairs</title>
+</head>
+<body>
+  <h1>Currency Pairs</h1>
+  <ul>
+    <% @currencies.each do |currency| %>
+      <li>
+        <a href="/<%= currency %>"><%= currency %></a>
+      </li>
+    <% end %>
+  </ul>
+</body>
+</html>

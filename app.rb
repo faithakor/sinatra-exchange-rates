@@ -1,24 +1,41 @@
 require "sinatra"
 require "sinatra/reloader"
+require 'dotenv/load'
 require 'json'
 require 'net/http'
 require 'uri'
-require 'dotenv/load'
 
-API_KEY = ENV['EXCHANGE_RATE_API_KEY']
-API_HOST_URL = "https://api.exchangerate.host"
-API_URL = "https://api.exchangerate-api.com/v4/latest/"
+# Route for the homepage - list all currencies dynamically from the API
+get '/' do
+  api_url = "https://api.exchangerate.host/list"
+  uri = URI(api_url)
+  response = Net::HTTP.get(uri)  # Fetch the API data
+  
+  @currencies = JSON.parse(response)["symbols"].keys
+  erb :homepage
+end
 
-get "/" do
-  base_currency = params['base'] || 'USD'
-  uri = URI("#{API_URL}#{base_currency}?apikey=#{API_KEY}")
-  response = Net::HTTP.get_response(uri)
+# Route to display the conversion options for a specific currency
+get '/:currency' do
+  @currency = params[:currency].upcase
+  api_url = "https://api.exchangerate.host/list"
+  uri = URI(api_url)
+  response = Net::HTTP.get(uri)
+  
+  @currencies = JSON.parse(response)["symbols"].keys
+  erb :currency
+end
 
-  if response.is_a?(Net::HTTPSuccess)
-    rates = JSON.parse(response.body)['rates']
-  else
-    rates = {}
-  end
-
-  erb :index, locals: { rates: rates, base_currency: base_currency }
+# Route for currency conversion between two specific currencies
+get '/:from_currency/:to_currency' do
+  @from_currency = params[:from_currency].upcase
+  @to_currency = params[:to_currency].upcase
+  api_url = "https://api.exchangerate.host/convert?from=#{@from_currency}&to=#{@to_currency}&amount=1"
+  uri = URI(api_url)
+  response = Net::HTTP.get(uri)
+  
+  data = JSON.parse(response)
+  @conversion_rate = data['info']['rate'] if data['success']
+  
+  erb :conversion
 end

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convert <%= @from_currency %> to <%= @to_currency %></title>
+</head>
+<body>
+  <h1>Convert <%= @from_currency %> to <%= @to_currency %></h1>
+  
+  <% if @conversion_rate %>
+    <p>1 <%= @from_currency %> equals <%= @conversion_rate %> <%= @to_currency %>.</p>
+  <% else %>
+    <p>Conversion rate not available.</p>
+  <% end %>
+  
+  <a href="/<%= @from_currency %>">Back</a>
+</body>
+</html>

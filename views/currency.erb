@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Convert <%= @currency %></title>
+</head>
+<body>
+  <h1>Convert <%= @currency %></h1>
+  
+  <ul>
+    <% @currencies.each do |currency| %>
+      <% if currency != @currency %>
+        <li>
+          <a href="/<%= @currency %>/<%= currency %>">Convert 1 <%= @currency %> to <%= currency %></a>
+        </li>
+      <% end %>
+    <% end %>
+  </ul>
+  
+  <a href="/">Back</a>
+</body>
+</html>
