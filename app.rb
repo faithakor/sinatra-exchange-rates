@@ -5,51 +5,85 @@ require 'json'
 require 'net/http'
 require 'uri'
 
-# Define route for homepage
-get("/") do
-  # Construct the API URL to get currency symbols with access key
-  api_url = URI.parse("https://api.exchangerate.host/list?access_key=#{ENV['EXCHANGE_RATE_KEY']}")
+# Route for the homepage - list all currencies dynamically from the API
+get "/" do
+  api_url = "https://api.exchangerate.host/list?access_key=#{ENV.fetch("EXCHANGE_RATE_KEY")}"
+  uri = URI(api_url)
 
-  # Make the request and parse the response
-  response = Net::HTTP.get_response(api_url)
-  @currency_data = JSON.parse(response.body)
-  
-  # Extract currency symbols from the response (keys of the 'symbols' hash)
-  @currency_symbols = @currency_data["symbols"].keys
+  # Make the request to the API
+  response = Net::HTTP.get(uri)
 
-  # Render the homepage with the list of symbols
+  # Log the raw API response for debugging
+  puts "API Response: #{response}"
+
+  # Parse the JSON response
+  begin
+    parsed_response = JSON.parse(response)
+
+    # Check if the 'currencies' key exists
+    if parsed_response && parsed_response['currencies']
+      @currencies = parsed_response['currencies'].keys  # Use 'currencies' here
+    else
+      @currencies = []
+      pp "Error: 'currencies' key not found in API response"
+    end
+  rescue JSON::ParserError => e
+    @currencies = []
+    pp "Error parsing JSON: #{e.message}"
+  end
+
   erb :homepage
 end
 
-# Define route for each currency symbol
-get("/:currency") do
-  @currency = params[:currency]
+# Route to display the conversion options for a specific currency
+get "/:currency" do
+  @currency = params[:currency].upcase
+  api_url = "https://api.exchangerate.host/list?access_key=#{ENV.fetch("EXCHANGE_RATE_KEY")}"
+  uri = URI(api_url)
+  response = Net::HTTP.get(uri)
 
-  # Construct the API URL to get currency symbols
-  api_url = URI.parse("https://api.exchangerate.host/list?access_key=#{ENV['EXCHANGE_RATE_KEY']}")
-  response = Net::HTTP.get_response(api_url)
-  @currency_data = JSON.parse(response.body)
-  
-  # Extract all symbols
-  @currency_symbols = @currency_data["symbols"].keys
+  # Log the raw API response for debugging
+  puts "API Response: #{response}"
 
-  # Render the page for the selected currency symbol
+  begin
+    parsed_response = JSON.parse(response)
+    if parsed_response && parsed_response['currencies']
+      @currencies = parsed_response['currencies'].keys  # Use 'currencies' here
+    else
+      @currencies = []
+      pp "Error: 'currencies' key not found in API response"
+    end
+  rescue JSON::ParserError => e
+    @currencies = []
+    pp "Error parsing JSON: #{e.message}"
+  end
+
   erb :currency
 end
 
-# Define route for currency conversion pair
-get("/:from_currency/:to_currency") do
-  @from_currency = params[:from_currency]
-  @to_currency = params[:to_currency]
+# Route for currency conversion between two specific currencies
+get "/:from_currency/:to_currency" do
+  @from_currency = params[:from_currency].upcase
+  @to_currency = params[:to_currency].upcase
+  api_url = "https://api.exchangerate.host/convert?from=#{@from_currency}&to=#{@to_currency}&amount=1&access_key=#{ENV.fetch("EXCHANGE_RATE_KEY")}"
+  uri = URI(api_url)
+  response = Net::HTTP.get(uri)
 
-  # Construct the API URL for conversion with access key
-  api_url = URI.parse("https://api.exchangerate.host/convert?from=#{@from_currency}&to=#{@to_currency}&amount=1&access_key=#{ENV['EXCHANGE_RATE_KEY']}")
-  response = Net::HTTP.get_response(api_url)
-  @conversion_data = JSON.parse(response.body)
+  # Log the raw API response for debugging
+  puts "API Response: #{response}"
 
-  # Extract conversion rate
-  @rate = @conversion_data["result"]
+  begin
+    data = JSON.parse(response)
+    if data['success']
+      @conversion_rate = data['info']['rate']
+    else
+      @conversion_rate = nil
+      pp "Error in conversion response: #{data['error']}"
+    end
+  rescue JSON::ParserError => e
+    @conversion_rate = nil
+    pp "Error parsing JSON: #{e.message}"
+  end
 
-  # Render the conversion result
   erb :conversion
 end
